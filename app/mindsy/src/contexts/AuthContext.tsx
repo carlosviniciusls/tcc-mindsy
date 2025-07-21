@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// src/contexts/AuthContext.tsx
+
+import React, { createContext, useContext, useState } from 'react';
 import { api } from '../services/api';
 
 type Usuario = {
@@ -20,28 +21,20 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
-  useEffect(() => {
-    const carregar = async () => {
-      const json = await AsyncStorage.getItem('usuario');
-      if (json) setUsuario(JSON.parse(json));
-    };
-    carregar();
-  }, []);
-
   const login = async (email: string, senha: string) => {
     const res = await api.post('/api/usuarios/login', { email, senha });
-    const user = res.data.usuario;
+    const user = res.data.usuario as Usuario;
     setUsuario(user);
-    await AsyncStorage.setItem('usuario', JSON.stringify(user));
+    // sem persistência em AsyncStorage
   };
 
   const register = async (nome: string, email: string, senha: string) => {
     await api.post('/api/usuarios/registrar', { nome, email, senha });
   };
 
-  const logout = async () => {
+  const logout = () => {
     setUsuario(null);
-    await AsyncStorage.removeItem('usuario');
+    // sem remoção de AsyncStorage
   };
 
   return (

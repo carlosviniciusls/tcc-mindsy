@@ -9,8 +9,8 @@ export const theme = {
     PRETO: '#121214'
   },
   FONT_FAMILY: {
-    BEBASNEUE: 'BebasNeue_400Regular',
-    INST_SANS: 'InstrumentsSans_500Medium',
+    BEBASNEUE: 'BebasNeue-Regular',
+    INST_SANS: 'InstrumentSans-Medium',
   },
   FONT_SIZE: {
     SM: 12,

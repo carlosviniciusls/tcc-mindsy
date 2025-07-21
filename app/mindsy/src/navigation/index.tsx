@@ -1,6 +1,9 @@
+// src/navigation/index.tsx
+
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './AuthStack';
-import MainTabs from './MainTabs'
+import MainTabs from './MainTabs';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Routes() {

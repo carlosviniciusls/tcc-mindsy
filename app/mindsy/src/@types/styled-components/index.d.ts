@@ -11,3 +11,22 @@ declare module 'styled-components' {
 declare module 'styled-components/native' {
   export interface DefaultTheme extends ThemeType {}
 }
+
+declare module 'styled-components/native' {
+  export interface DefaultTheme {
+    COLORS: {
+      PRETO: string;
+      WHITE: string;
+      VERMELHO: string;
+    };
+    FONT_FAMILY: {
+      BEBASNEUE: string;
+      INST_SANS: string;
+    };
+    FONT_SIZE: {
+      XL: number;
+      MD: number;
+      SM: number;
+    };
+  }
+}

@@ -1,11 +1,15 @@
+// src/screens/Auth/Login.tsx
+
+import React, { useState } from 'react';
+import { KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
-import { DefaultTheme } from 'styled-components/native';
-import { useState } from 'react';
+import { theme } from '../../theme';
 import { useAuth } from '../../contexts/AuthContext';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 
 type AuthStackParamList = {
+  Splash: undefined;
   Login: undefined;
   Register: undefined;
 };
@@ -16,84 +20,123 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
     try {
-      setErro('');
+      setError('');
       await login(email, senha);
-      // se login for bem-sucedido, o Routes redireciona automaticamente
-    } catch (err: any) {
-      setErro('Email ou senha inválidos');
+    } catch {
+      setError('E-mail ou senha inválidos.');
     }
   };
 
   return (
-    <Container>
-      <Title>Entrar</Title>
+    <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Logo source={require('../../assets/Logo.png')} />
 
-      <Input placeholder="Email" value={email} onChangeText={setEmail} placeholderTextColor="#999" />
-      <Input placeholder="Senha" value={senha} onChangeText={setSenha} placeholderTextColor="#999" secureTextEntry />
+      <Form>
+        <Label>E-mail:</Label>
+        <Input
+          placeholder="seu@email.com"
+          placeholderTextColor={theme.COLORS.WHITE}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
 
-      {erro ? <ErrorText>{erro}</ErrorText> : null}
+        <Label>Senha:</Label>
+        <Input
+          placeholder="••••••••"
+          placeholderTextColor={theme.COLORS.WHITE}
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
 
-      <Button onPress={handleLogin}>
-        <ButtonText>ACESSAR</ButtonText>
-      </Button>
+        {!!error && <ErrorText>{error}</ErrorText>}
 
-      <LinkText onPress={() => navigation.navigate('Register')}>
-        Ainda não tem conta? Cadastre-se
-      </LinkText>
+        <ButtonLogin onPress={handleLogin}>
+          <ButtonTextLogin>LOGIN</ButtonTextLogin>
+        </ButtonLogin>
+        <ButtonRegister onPress={() => navigation.navigate('Register')}>
+          <ButtonTextRegister>CADASTRO</ButtonTextRegister>
+        </ButtonRegister>
+      </Form>
     </Container>
   );
 }
 
-const Container = styled.View`
+// Styled-components
+
+const Container = styled(KeyboardAvoidingView)`
   flex: 1;
-  padding: 32px;
+  background-color: ${theme.COLORS.PRETO};
+  align-items: center;
   justify-content: center;
-  background-color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.PRETO};
+  padding: 0 24px;
 `;
 
-const Title = styled.Text`
-  font-family: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_SIZE.XL}px;
-  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
+const Logo = styled.Image`
+  width: 160px;
+  height: 160px;
   margin-bottom: 32px;
 `;
 
+const Form = styled.View`
+  width: 100%;
+`;
+
+const Label = styled.Text`
+  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
+  color: ${theme.COLORS.WHITE};
+  margin-bottom: 8px;
+  font-size: ${theme.FONT_SIZE.XL * 1.1}px;
+`;
+
 const Input = styled.TextInput`
-  background-color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
+  background-color: #333333;
+  color: ${theme.COLORS.WHITE};
+  font-family: ${theme.FONT_FAMILY.INST_SANS};
+  font-size: ${theme.FONT_SIZE.MD}px;
   padding: 12px 16px;
   border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_SIZE.MD}px;
-`;
-
-const Button = styled.TouchableOpacity`
-  background-color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.VERMELHO};
-  padding: 14px;
-  border-radius: 8px;
-  align-items: center;
-  margin-top: 8px;
-`;
-
-const ButtonText = styled.Text`
-  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
-  font-size: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_SIZE.MD}px;
-  font-family: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_FAMILY.INST_SANS};
-`;
-
-const LinkText = styled.Text`
-  margin-top: 24px;
-  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
-  font-size: ${({ theme }: { theme: DefaultTheme }) => theme.FONT_SIZE.SM}px;
-  text-align: center;
-  text-decoration: underline;
+  margin-bottom: 24px;
 `;
 
 const ErrorText = styled.Text`
-  color: #ff9999;
+  color: ${theme.COLORS.VERMELHO};
+  font-family: ${theme.FONT_FAMILY.INST_SANS};
+  font-size: ${theme.FONT_SIZE.SM}px;
+  margin-bottom: 16px;
   text-align: center;
-  margin-bottom: 12px;
+`;
+
+const ButtonLogin = styled.TouchableOpacity`
+  background-color: ${theme.COLORS.AMARELO};
+  padding: 14px 0;
+  border-radius: 8px;
+  margin-bottom: 22px;
+`;
+
+const ButtonTextLogin = styled.Text`
+  color: ${theme.COLORS.PRETO};
+  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
+  font-size: ${theme.FONT_SIZE.XL}px;
+  text-align: center;
+`;
+
+const ButtonRegister = styled.TouchableOpacity`
+  background-color: ${theme.COLORS.VERDE};
+  padding: 14px 0;
+  border-radius: 8px;
+  margin-bottom: 24px;
+`;
+
+const ButtonTextRegister = styled.Text`
+  color: ${theme.COLORS.PRETO};
+  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
+  font-size: ${theme.FONT_SIZE.XL}px;
+  text-align: center;
 `;
