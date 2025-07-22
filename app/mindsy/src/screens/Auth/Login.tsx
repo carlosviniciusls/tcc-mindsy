@@ -25,7 +25,7 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       setError('');
-      await login(email, senha);
+      await login(email.trim(), senha);
     } catch {
       setError('E-mail ou senha inválidos.');
     }
@@ -36,20 +36,20 @@ export default function Login() {
       <Logo source={require('../../assets/Logo.png')} />
 
       <Form>
-        <Label>E-mail:</Label>
-        <Input
+        <Label>E-mail</Label>
+        <InputRoxo
           placeholder="seu@email.com"
-          placeholderTextColor={theme.COLORS.WHITE}
+          placeholderTextColor="rgba(255,255,255,0.6)"
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
 
-        <Label>Senha:</Label>
-        <Input
+        <Label>Senha</Label>
+        <InputVerde
           placeholder="••••••••"
-          placeholderTextColor={theme.COLORS.WHITE}
+          placeholderTextColor="rgba(255,255,255,0.6)"
           secureTextEntry
           value={senha}
           onChangeText={setSenha}
@@ -60,6 +60,7 @@ export default function Login() {
         <ButtonLogin onPress={handleLogin}>
           <ButtonTextLogin>LOGIN</ButtonTextLogin>
         </ButtonLogin>
+
         <ButtonRegister onPress={() => navigation.navigate('Register')}>
           <ButtonTextRegister>CADASTRO</ButtonTextRegister>
         </ButtonRegister>
@@ -95,14 +96,22 @@ const Label = styled.Text`
   font-size: ${theme.FONT_SIZE.XL * 1.1}px;
 `;
 
-const Input = styled.TextInput`
-  background-color: #333333;
+const BaseInput = styled.TextInput`
+  background-color: transparent;
   color: ${theme.COLORS.WHITE};
+  border-bottom-width: 2px;
   font-family: ${theme.FONT_FAMILY.INST_SANS};
   font-size: ${theme.FONT_SIZE.MD}px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
+  padding: 12px 0;
+  margin-bottom: 32px;
+`;
+
+const InputRoxo = styled(BaseInput)`
+  border-bottom-color: ${theme.COLORS.VERMELHO};
+`;
+
+const InputVerde = styled(BaseInput)`
+  border-bottom-color: ${theme.COLORS.BLUE};
 `;
 
 const ErrorText = styled.Text`

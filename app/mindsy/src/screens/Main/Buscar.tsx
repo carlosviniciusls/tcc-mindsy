@@ -20,7 +20,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { MagnifyingGlass } from 'phosphor-react-native';
 import { theme } from '../../theme';
 
-type Livro = {
+export type Livro = {
   id: number;
   titulo: string;
   autor?: string;
@@ -30,6 +30,7 @@ type Livro = {
   status: 'disponivel' | 'reservado';
   borderColor?: string;
 };
+
 
 type RootStackParamList = {
   LivroDetalhes: { id: number };
@@ -41,7 +42,7 @@ const api = axios.create({
 });
 
 export default function Buscar() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<BuscarStackParamList>>();
 
   const palette = useMemo(
     () => [
@@ -115,7 +116,7 @@ export default function Buscar() {
 
   const BookCard = memo(
     ({ item }: { item: Livro }) => (
-      <Card onPress={() => navigation.navigate('LivroDetalhes', { id: item.id })} borderColor={item.borderColor}>
+      <Card onPress={() => navigation.navigate('LivroDetalhes', { book: item })} borderColor={item.borderColor}>
         {item.imagem_url && <Cover source={{ uri: item.imagem_url }} />}
         <Content>
           <Title numberOfLines={1}>{item.titulo}</Title>

@@ -5,22 +5,50 @@ exports.criarReserva = async (req, res) => {
   const { usuario_id, livro_id } = req.body;
 
   try {
-    const [livros] = await pool.query('SELECT status FROM livros WHERE id = ?', [livro_id]);
+    // Verifica se o usuário já tem uma reserva ativa
+    const [existeReserva] = await pool.query(
+      'SELECT id FROM reservas WHERE usuario_id = ? AND status = "ativa"',
+      [usuario_id]
+    );
 
-    if (!livros.length) return res.status(404).json({ message: 'Livro não encontrado' });
-
-    if (livros[0].status !== 'disponivel') {
-      return res.status(400).json({ message: 'Livro não está disponível para reserva' });
+    if (existeReserva.length > 0) {
+      return res.status(400).json({
+        message: 'Você já possui uma reserva ativa. Cancele ou retire antes de reservar outro livro.'
+      });
     }
 
-    await pool.query('INSERT INTO reservas (usuario_id, livro_id) VALUES (?, ?)', [usuario_id, livro_id]);
-    await pool.query('UPDATE livros SET status = "reservado" WHERE id = ?', [livro_id]);
+    // Verifica se o livro está disponível
+    const [livros] = await pool.query(
+      'SELECT status FROM livros WHERE id = ?',
+      [livro_id]
+    );
+
+    if (!livros.length) {
+      return res.status(404).json({ message: 'Livro não encontrado.' });
+    }
+
+    if (livros[0].status !== 'disponivel') {
+      return res.status(400).json({ message: 'Livro não está disponível para reserva.' });
+    }
+
+    // Cria a reserva e atualiza o status do livro
+    await pool.query(
+      'INSERT INTO reservas (usuario_id, livro_id, status) VALUES (?, ?, "ativa")',
+      [usuario_id, livro_id]
+    );
+
+    await pool.query(
+      'UPDATE livros SET status = "reservado" WHERE id = ?',
+      [livro_id]
+    );
 
     res.status(201).json({ message: 'Reserva criada com sucesso!' });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Listar reservas ativas de um usuário
 exports.reservasPorUsuario = async (req, res) => {

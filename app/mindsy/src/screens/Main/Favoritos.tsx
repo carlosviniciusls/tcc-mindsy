@@ -10,26 +10,21 @@ import React, {
 import {
   FlatList,
   ActivityIndicator,
-  TouchableOpacity,
   RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { theme } from '../../theme';
 import { StarIcon } from 'phosphor-react-native';
+import type { Livro } from './Buscar';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { FavoritosStackParamList } from '../../navigation/FavoritosStack';
 
-type Favorito = {
-  id: number;
-  livro: {
-    id: number;
-    titulo: string;
-    autor?: string;
-    descricao?: string;
-    imagem_url?: string;
-  };
-  data_favorito: string;
+type Favorito = Livro & {
+  data_favorito?: string;
   borderColor?: string;
 };
 
@@ -39,6 +34,7 @@ const api = axios.create({
 });
 
 export default function Favoritos() {
+  const navigation = useNavigation<NativeStackNavigationProp<FavoritosStackParamList>>();
   const { usuario } = useAuth();
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,26 +59,11 @@ export default function Favoritos() {
       setError(null);
 
       try {
-        const res = await api.get<any[]>(`/api/favoritos/${usuario.id}`);
-
-        const dados = res.data
-          .map((raw, idx) => {
-            const livro = raw.livro ?? {
-              id: raw.id,
-              titulo: raw.titulo,
-              autor: raw.autor,
-              descricao: raw.descricao,
-              imagem_url: raw.imagem_url
-            };
-            return {
-              id: raw.id,
-              livro,
-              data_favorito: raw.data_favorito,
-              borderColor: palette[idx % palette.length]
-            } as Favorito;
-          })
-          .filter(item => !!item.livro);
-
+        const res = await api.get<Favorito[]>(`/api/favoritos/${usuario.id}`);
+        const dados = res.data.map((raw, idx) => ({
+          ...raw,
+          borderColor: palette[idx % palette.length]
+        }));
         setFavoritos(dados);
       } catch {
         setError('Não foi possível carregar seus favoritos.');
@@ -103,24 +84,27 @@ export default function Favoritos() {
     setRefreshing(false);
   }, [fetchFavoritos]);
 
+  const handleOpenDetails = (livro: Livro) => {
+    navigation.navigate('LivroDetalhes', { book: livro });
+  };
+
   const FavoritoCard = memo(
     ({ item }: { item: Favorito }) => (
-      <Card borderColor={item.borderColor}>
-        {item.livro.imagem_url && (
-          <Cover source={{ uri: item.livro.imagem_url }} />
+      <Card borderColor={item.borderColor} onPress={() => handleOpenDetails(item)}>
+        {item.imagem_url && (
+          <Cover source={{ uri: item.imagem_url }} />
         )}
         <Content>
-          <Title numberOfLines={1}>{item.livro.titulo}</Title>
-          {item.livro.autor && (
-            <Author numberOfLines={1}>{item.livro.autor}</Author>
+          <Title numberOfLines={1}>{item.titulo}</Title>
+          {item.autor && <Author numberOfLines={1}>{item.autor}</Author>}
+          {item.descricao && (
+            <Desc numberOfLines={3}>{item.descricao}</Desc>
           )}
-          {item.livro.descricao && (
-            <Desc numberOfLines={3}>{item.livro.descricao}</Desc>
+          {item.data_favorito && !isNaN(Date.parse(item.data_favorito)) && (
+            <DateText>
+              Favoritado em {new Date(item.data_favorito).toLocaleDateString('pt-BR')}
+            </DateText>
           )}
-          <DateText>
-            Favoritado em{' '}
-            {new Date(item.data_favorito).toLocaleDateString()}
-          </DateText>
         </Content>
       </Card>
     ),
@@ -142,7 +126,6 @@ export default function Favoritos() {
       edges={['top', 'bottom']}
     >
       <Wrapper>
-        {/* <SeusFavoritos> em cima da lista */}
         <SeusFavoritos>Seus favoritos:</SeusFavoritos>
 
         {loading && (
@@ -160,10 +143,6 @@ export default function Favoritos() {
             data={favoritos}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => <FavoritoCard item={item} />}
-            initialNumToRender={5}
-            maxToRenderPerBatch={5}
-            windowSize={8}
-            removeClippedSubviews
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -183,28 +162,25 @@ export default function Favoritos() {
 
 // Styled Components
 
-const Wrapper = styled.View`
-  flex: 1;
-`;
+const Wrapper = styled.View` flex: 1; `;
 
 const SeusFavoritos = styled.Text`
   font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: 20px;
+  font-size: 40px;
   color: ${theme.COLORS.WHITE};
-  margin: 18px 18px 8px;
+  margin: 40px 18px 8px;
 `;
 
 interface CardProps {
   borderColor?: string;
 }
 
-const Card = styled(TouchableOpacity)<CardProps>`
+const Card = styled.TouchableOpacity<CardProps>`
   flex-direction: row;
-  border: 3px solid ${({ borderColor }: { borderColor?: string }) => borderColor};
+  border: 3px solid ${({ borderColor }: CardProps) => borderColor || theme.COLORS.AMARELO};
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
-  background-color: transparent;
 `;
 
 const Cover = styled.Image`
@@ -249,7 +225,6 @@ const EmptyContainer = styled.View`
   justify-content: center;
   align-items: center;
   padding: 40px 16px;
-  background-color: ${theme.COLORS.PRETO};
 `;
 
 const EmptyText = styled.Text`
@@ -257,7 +232,6 @@ const EmptyText = styled.Text`
   text-align: center;
   font-size: ${theme.FONT_SIZE.MD}px;
   color: ${theme.COLORS.WHITE};
-  line-height: 20px;
 `;
 
 const ErrorText = styled.Text`

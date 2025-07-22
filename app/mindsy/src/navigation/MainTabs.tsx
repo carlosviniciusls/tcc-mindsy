@@ -7,10 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import { theme } from '../theme';
 import Home from '../screens/Main/Home';
-import Buscar from '../screens/Main/Buscar';
 import Mapa from '../screens/Main/Mapa';
-import Favoritos from '../screens/Main/Favoritos';
+import FavoritosStack from './FavoritosStack';
 import Perfil from '../screens/Main/Perfil';
+import BuscarStack from './BuscarStack';
+
 import {
   HouseIcon,
   MagnifyingGlassIcon,
@@ -71,9 +72,9 @@ export default function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={ props => <CustomTabBar {...props} /> }>
       <Tab.Screen name="Mapa" component={Mapa} />
-      <Tab.Screen name="Buscar" component={Buscar} />
+      <Tab.Screen name="Buscar" component={BuscarStack} />
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Favoritos" component={Favoritos} />
+      <Tab.Screen name="Favoritos" component={FavoritosStack} />
       <Tab.Screen name="Perfil" component={Perfil} />
     </Tab.Navigator>
   );

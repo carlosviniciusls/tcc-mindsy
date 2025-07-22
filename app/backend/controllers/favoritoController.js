@@ -46,6 +46,7 @@ exports.listarFavoritos = async (req, res) => {
   try {
     const [favoritos] = await pool.query(`
       SELECT 
+        f.data_favorito,
         l.id, l.titulo, l.autor, l.ano, l.descricao, l.imagem_url, l.tipo, l.status,
         m.nome AS nome_maquina
       FROM favoritos f

@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { theme } from './src/theme';
 import { AuthProvider } from './src/contexts/AuthContext';
 import Routes from './src/navigation';
+import { FavoritesProvider } from './src/contexts/FavoriteContext';
 
 // Impede que a splash seja escondida automaticamente
 SplashScreen.preventAutoHideAsync();
@@ -33,8 +34,10 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
-        <StatusBar style="light" translucent />
-        <Routes />
+        <FavoritesProvider>
+          <StatusBar style="light" translucent />
+          <Routes />
+        </FavoritesProvider>
       </AuthProvider>
     </ThemeProvider>
   );
