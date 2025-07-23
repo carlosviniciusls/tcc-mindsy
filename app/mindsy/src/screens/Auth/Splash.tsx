@@ -1,8 +1,13 @@
 // src/screens/Auth/Splash.tsx
 
 import React from 'react';
-import { Pressable } from 'react-native';
-import styled from 'styled-components/native';
+import {
+  Pressable,
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,106 +19,107 @@ type AuthStackParamList = {
   Register: undefined;
 };
 
+const { width, height } = Dimensions.get('window');
+
 export default function Splash() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
-    <Background
+    <LinearGradient
       colors={['#0B0C10', '#161821']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      style={styles.background}
     >
-      <GlowTop />
-      <GlowBottom />
+      <View style={styles.glowTop} />
+      <View style={styles.glowBottom} />
 
-      <Content>
-        <Title>MINDSY MACHINE</Title>
+      <View style={styles.content}>
+        <Text style={styles.title}>MINDSY MACHINE</Text>
 
-        <Tagline>
-          NOSSA TECNOLOGIA ENTREGA <Green>livros</Green>.{'\n'}
-          E A LEITURA TE ENTREGA <Yellow>ideias</Yellow>.
-        </Tagline>
+        <Text style={styles.tagline}>
+          NOSSA TECNOLOGIA ENTREGA <Text style={styles.green}>livros</Text>.{'\n'}
+          E A LEITURA TE ENTREGA <Text style={styles.yellow}>ideias</Text>.
+        </Text>
 
-        <EnterButton onPress={() => navigation.navigate('Login')}>
-          <EnterText>VER APP</EnterText>
-        </EnterButton>
-      </Content>
-    </Background>
+        <Pressable
+          style={styles.enterButton}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.enterText}>VER APP</Text>
+        </Pressable>
+      </View>
+    </LinearGradient>
   );
 }
 
-// 💅 Styled Components
-
-const Background = styled(LinearGradient)`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-`;
-
-const GlowTop = styled.View`
-  position: absolute;
-  top: -160px;
-  right: -120px;
-  width: 360px;
-  height: 360px;
-  border-radius: 180px;
-  background-color: ${theme.COLORS.BLUE};
-  opacity: 0.35;
-`;
-
-const GlowBottom = styled.View`
-  position: absolute;
-  bottom: -160px;
-  left: -120px;
-  width: 320px;
-  height: 320px;
-  border-radius: 160px;
-  background-color: ${theme.COLORS.VERMELHO};
-  opacity: 0.35;
-`;
-
-const Content = styled.View`
-  padding: 0 32px;
-  align-items: center;
-`;
-
-const Title = styled.Text`
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${theme.FONT_SIZE.XL * 3}px;
-  color: ${theme.COLORS.WHITE};
-  margin-bottom: 32px;
-  text-align: center;
-  letter-spacing: 0.5px;
-`;
-
-const Tagline = styled.Text`
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${theme.FONT_SIZE.XL * 1.1}px;
-  color: ${theme.COLORS.WHITE};
-  text-align: center;
-  line-height: 30px;
-  margin-bottom: 48px;
-`;
-
-const Green = styled.Text`
-  color: ${theme.COLORS.VERDE};
-`;
-
-const Yellow = styled.Text`
-  color: ${theme.COLORS.AMARELO};
-`;
-
-const EnterButton = styled(Pressable)`
-  border: 2px solid ${theme.COLORS.WHITE};
-  background-color: transparent;
-  padding: 16px 68px;
-  border-radius: 10px;
-`;
-
-const EnterText = styled.Text`
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${theme.FONT_SIZE.XL}px;
-  color: ${theme.COLORS.WHITE};
-  letter-spacing: 0px;
-`;
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -160,
+    right: -120,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: theme.COLORS.BLUE,
+    opacity: 0.35,
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: -160,
+    left: -120,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: theme.COLORS.VERMELHO,
+    opacity: 0.35,
+  },
+  content: {
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  title: {
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: theme.FONT_SIZE.XL * 3,
+    color: theme.COLORS.WHITE,
+    marginBottom: 32,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  tagline: {
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: theme.FONT_SIZE.XL * 1.1,
+    color: theme.COLORS.WHITE,
+    textAlign: 'center',
+    lineHeight: 30,
+    marginBottom: 48,
+  },
+  green: {
+    color: theme.COLORS.VERDE,
+  },
+  yellow: {
+    color: theme.COLORS.AMARELO,
+  },
+  enterButton: {
+    borderWidth: 2,
+    borderColor: theme.COLORS.WHITE,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    paddingHorizontal: 68,
+    borderRadius: 10,
+  },
+  enterText: {
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: theme.FONT_SIZE.XL,
+    color: theme.COLORS.WHITE,
+    letterSpacing: 0,
+    textAlign: 'center',
+  },
+});

@@ -1,26 +1,33 @@
-// src/screens/Main/Mapa.tsx
-
-import React from 'react';
-import styled from 'styled-components/native';
-import { theme } from '../../theme';
+import React, { useCallback } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
+import { theme } from '../../theme'
 
 export default function Mapa() {
+  useFocusEffect(
+    useCallback(() => {
+      // ex.: recarregar marcadores no mapa
+      // console.log('Mapa focado')
+    }, [])
+  )
+
   return (
-    <Container>
-      <Title>📍 Ver mapa de máquinas</Title>
-    </Container>
-  );
+    <View style={styles.container}>
+      <Text style={styles.title}>📍 Ver mapa de máquinas</Text>
+    </View>
+  )
 }
 
-const Container = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  background-color: ${theme.COLORS.PRETO};
-`;
-
-const Title = styled.Text`
-  color: ${theme.COLORS.WHITE};
-  font-size: ${theme.FONT_SIZE.XL}px;
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-`;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.COLORS.PRETO
+  },
+  title: {
+    color: theme.COLORS.WHITE,
+    fontSize: theme.FONT_SIZE.XL,
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE
+  }
+})

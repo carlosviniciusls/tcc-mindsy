@@ -1,4 +1,6 @@
+// src/screens/Main/Buscar.tsx
 // @ts-nocheck
+
 import React, {
   useState,
   useEffect,
@@ -7,16 +9,20 @@ import React, {
   memo
 } from 'react';
 import {
+  View,
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  RefreshControl
+  RefreshControl,
+  Text,
+  TextInput,
+  Image,
+  StyleSheet
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { useNavigation } from '@react-navigation/native';
-import styled from 'styled-components/native';
 import axios from 'axios';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { MagnifyingGlass } from 'phosphor-react-native';
 import { theme } from '../../theme';
 
@@ -31,18 +37,13 @@ export type Livro = {
   borderColor?: string;
 };
 
-
-type RootStackParamList = {
-  LivroDetalhes: { id: number };
-};
-
 const api = axios.create({
   baseURL: 'http://192.168.0.105:3000',
   timeout: 3000
 });
 
 export default function Buscar() {
-  const navigation = useNavigation<NativeStackNavigationProp<BuscarStackParamList>>();
+  const navigation = useNavigation<any>();
 
   const palette = useMemo(
     () => [
@@ -62,7 +63,6 @@ export default function Buscar() {
 
   const [query, setQuery] = useState('');
   const [tipoFilter, setTipoFilter] = useState<'tudo' | 'pessoal' | 'profissional'>('tudo');
-
   const [livros, setLivros] = useState<Livro[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +99,12 @@ export default function Buscar() {
     [query, tipoFilter, palette]
   );
 
-  useEffect(() => {
-    fetchLivros(true);
-  }, [fetchLivros]);
+  // dispara sempre que a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      fetchLivros(true);
+    }, [fetchLivros])
+  );
 
   useEffect(() => {
     const t = setTimeout(() => fetchLivros(false), 300);
@@ -116,56 +119,91 @@ export default function Buscar() {
 
   const BookCard = memo(
     ({ item }: { item: Livro }) => (
-      <Card onPress={() => navigation.navigate('LivroDetalhes', { book: item })} borderColor={item.borderColor}>
-        {item.imagem_url && <Cover source={{ uri: item.imagem_url }} />}
-        <Content>
-          <Title numberOfLines={1}>{item.titulo}</Title>
-          {item.autor && <Author numberOfLines={1}>{item.autor}</Author>}
-          {item.descricao && <Desc numberOfLines={5}>{item.descricao}</Desc>}
-        </Content>
-      </Card>
+      <TouchableOpacity
+        style={[styles.card, { borderColor: item.borderColor }]}
+        onPress={() => navigation.navigate('LivroDetalhes', { book: item })}
+      >
+        {item.imagem_url && (
+          <Image source={{ uri: item.imagem_url }} style={styles.cover} />
+        )}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.titulo}
+          </Text>
+          {item.autor && (
+            <Text style={styles.author} numberOfLines={1}>
+              {item.autor}
+            </Text>
+          )}
+          {item.descricao && (
+            <Text style={styles.desc} numberOfLines={5}>
+              {item.descricao}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
     ),
     () => true
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.COLORS.PRETO }} edges={['top', 'bottom']}>
-      <Wrapper>
-        <SearchWrapper>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <View style={styles.wrapper}>
+        <View style={styles.searchWrapper}>
           <MagnifyingGlass size={20} color={theme.COLORS.PRETO} />
-          <SearchInput
+          <TextInput
+            style={styles.searchInput}
             placeholder="Buscar livro..."
             placeholderTextColor={theme.COLORS.PRETO}
             value={query}
             onChangeText={setQuery}
           />
-        </SearchWrapper>
+        </View>
 
-        <FilterRow>
-          {(['tudo', 'pessoal', 'profissional'] as const).map((tipo, idx) => (
-            <FilterBtn
-              key={tipo}
-              selected={tipoFilter === tipo}
-              onPress={() => {
-                setTipoFilter(tipo);
-                setQuery('');
-              }}
-              borderColor={typeColors[idx]}
-            >
-              <FilterText selected={tipoFilter === tipo} borderColor={typeColors[idx]}>
-                {tipo === 'tudo' ? 'Todos' : tipo.charAt(0).toUpperCase() + tipo.slice(1)}
-              </FilterText>
-            </FilterBtn>
-          ))}
-        </FilterRow>
+        <View style={styles.filterRow}>
+          {(['tudo', 'pessoal', 'profissional'] as const).map((tipo, idx) => {
+            const selected = tipoFilter === tipo;
+            const borderColor = typeColors[idx];
+            return (
+              <TouchableOpacity
+                key={tipo}
+                style={[
+                  styles.filterBtn,
+                  { borderColor, backgroundColor: selected ? theme.COLORS.PRETO : 'transparent' }
+                ]}
+                onPress={() => {
+                  setTipoFilter(tipo);
+                  setQuery('');
+                }}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    { color: selected ? borderColor : theme.COLORS.WHITE }
+                  ]}
+                >
+                  {tipo === 'tudo'
+                    ? 'Todos'
+                    : tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-        {loading && <ActivityIndicator color={theme.COLORS.VERDE} size="large" style={{ marginTop: 16 }} />}
-        {error && <Error>{error}</Error>}
+        {loading && (
+          <ActivityIndicator
+            color={theme.COLORS.VERDE}
+            size="large"
+            style={styles.loading}
+          />
+        )}
+        {error && <Text style={styles.error}>{error}</Text>}
 
         {!loading && !error && (
           <FlatList
             data={livros}
-            keyExtractor={(item) => String(item.id)}
+            keyExtractor={item => String(item.id)}
             renderItem={({ item }) => <BookCard item={item} />}
             initialNumToRender={5}
             maxToRenderPerBatch={5}
@@ -173,109 +211,113 @@ export default function Buscar() {
             removeClippedSubviews
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.COLORS.VERDE} />
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={theme.COLORS.VERDE}
+              />
             }
-            contentContainerStyle={{ paddingBottom: 24 }}
-            ListEmptyComponent={<Empty>{query ? 'Nenhum livro encontrado.' : 'Nenhum livro disponível.'}</Empty>}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                {query ? 'Nenhum livro encontrado.' : 'Nenhum livro disponível.'}
+              </Text>
+            }
           />
         )}
-      </Wrapper>
+      </View>
     </SafeAreaView>
   );
 }
 
-// Styled Components
-
-const Wrapper = styled.View`
-  flex: 1;
-  padding: 0 12px;
-`;
-
-const SearchWrapper = styled.View`
-  flex-direction: row;
-  align-items: center;
-  background-color: ${theme.COLORS.WHITE};
-  border-radius: 24px;
-  padding: 8px 16px;
-  margin: 16px 0;
-`;
-
-const SearchInput = styled.TextInput`
-  flex: 1;
-  margin-left: 8px;
-  font-size: ${theme.FONT_SIZE.MD}px;
-  color: ${theme.COLORS.PRETO};
-`;
-
-const FilterRow = styled.View`
-  flex-direction: row;
-  justify-content: flex-start;
-  margin-bottom: 12px;
-`;
-
-const FilterBtn = styled(TouchableOpacity)<{ selected: boolean; borderColor: string }>`
-  padding: 6px 12px;
-  margin-right: 8px;
-  border-radius: 12px;
-  border: 3px solid ${({ borderColor }) => borderColor};
-  background-color: ${({ selected }) => (selected ? theme.COLORS.PRETO : 'transparent')};
-`;
-
-const FilterText = styled.Text<{ selected: boolean; borderColor: string }>`
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${({ selected, borderColor }) => (selected ? borderColor : theme.COLORS.WHITE)};
-`;
-
-const Card = styled(TouchableOpacity)<{ borderColor?: string }>`
-  flex-direction: row;
-  border: 3px solid ${({ borderColor }) => borderColor};
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  background-color: transparent;
-`;
-
-const Cover = styled.Image`
-  width: 100px;
-  height: 150px;
-  border-radius: 8px;
-  background-color: #eee;
-`;
-
-const Content = styled.View`
-  flex: 1;
-  margin-left: 16px;
-`;
-
-const Title = styled.Text`
-  font-family: ${theme.FONT_FAMILY.INST_SANS};
-  font-size: ${theme.FONT_SIZE.XL}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const Author = styled.Text`
-  margin-top: 6px;
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const Desc = styled.Text`
-  margin-top: 8px;
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${theme.COLORS.WHITE};
-  line-height: 20px;
-`;
-
-const Empty = styled.Text`
-  text-align: center;
-  margin-top: 32px;
-  font-size: ${theme.FONT_SIZE.MD}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const Error = styled.Text`
-  text-align: center;
-  margin-top: 32px;
-  font-size: ${theme.FONT_SIZE.MD}px;
-  color: ${theme.COLORS.VERMELHO};
-`;
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.COLORS.PRETO
+  },
+  wrapper: {
+    flex: 1,
+    paddingHorizontal: 12
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.COLORS.WHITE,
+    borderRadius: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginVertical: 16
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: theme.FONT_SIZE.MD,
+    color: theme.COLORS.PRETO
+  },
+  filterRow: {
+    flexDirection: 'row',
+    marginBottom: 12
+  },
+  filterBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    borderRadius: 12,
+    borderWidth: 3
+  },
+  filterText: {
+    fontSize: theme.FONT_SIZE.SM
+  },
+  card: {
+    flexDirection: 'row',
+    borderWidth: 3,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    backgroundColor: 'transparent'
+  },
+  cover: {
+    width: 100,
+    height: 150,
+    borderRadius: 8,
+    backgroundColor: '#eee'
+  },
+  content: {
+    flex: 1,
+    marginLeft: 16
+  },
+  title: {
+    fontFamily: theme.FONT_FAMILY.INST_SANS,
+    fontSize: theme.FONT_SIZE.XL,
+    color: theme.COLORS.WHITE
+  },
+  author: {
+    marginTop: 6,
+    fontSize: theme.FONT_SIZE.SM,
+    color: theme.COLORS.WHITE
+  },
+  desc: {
+    marginTop: 8,
+    fontSize: theme.FONT_SIZE.SM,
+    color: theme.COLORS.WHITE,
+    lineHeight: 20
+  },
+  loading: {
+    marginTop: 16
+  },
+  listContent: {
+    paddingBottom: 24
+  },
+  empty: {
+    textAlign: 'center',
+    marginTop: 32,
+    fontSize: theme.FONT_SIZE.MD,
+    color: theme.COLORS.WHITE
+  },
+  error: {
+    textAlign: 'center',
+    marginTop: 32,
+    fontSize: theme.FONT_SIZE.MD,
+    color: theme.COLORS.VERMELHO
+  }
+});

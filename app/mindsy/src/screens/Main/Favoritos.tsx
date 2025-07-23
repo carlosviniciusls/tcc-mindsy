@@ -2,20 +2,23 @@
 
 import React, {
   useState,
-  useEffect,
   useCallback,
   useMemo,
   memo
 } from 'react';
 import {
+  View,
   FlatList,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styled from 'styled-components/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { theme } from '../../theme';
 import { StarIcon } from 'phosphor-react-native';
@@ -23,7 +26,7 @@ import type { Livro } from './Buscar';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { FavoritosStackParamList } from '../../navigation/FavoritosStack';
 
-type Favorito = Livro & {
+export type Favorito = Livro & {
   data_favorito?: string;
   borderColor?: string;
 };
@@ -34,8 +37,10 @@ const api = axios.create({
 });
 
 export default function Favoritos() {
-  const navigation = useNavigation<NativeStackNavigationProp<FavoritosStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<FavoritosStackParamList>>();
   const { usuario } = useAuth();
+
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,9 +79,12 @@ export default function Favoritos() {
     [usuario, palette]
   );
 
-  useEffect(() => {
-    fetchFavoritos(true);
-  }, [fetchFavoritos]);
+  // auto-refresh when screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavoritos(true);
+    }, [fetchFavoritos])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -90,53 +98,51 @@ export default function Favoritos() {
 
   const FavoritoCard = memo(
     ({ item }: { item: Favorito }) => (
-      <Card borderColor={item.borderColor} onPress={() => handleOpenDetails(item)}>
+      <TouchableOpacity
+        style={[styles.card, { borderColor: item.borderColor || theme.COLORS.AMARELO }]}
+        onPress={() => handleOpenDetails(item)}
+      >
         {item.imagem_url && (
-          <Cover source={{ uri: item.imagem_url }} />
+          <Image source={{ uri: item.imagem_url }} style={styles.cover} />
         )}
-        <Content>
-          <Title numberOfLines={1}>{item.titulo}</Title>
-          {item.autor && <Author numberOfLines={1}>{item.autor}</Author>}
-          {item.descricao && (
-            <Desc numberOfLines={3}>{item.descricao}</Desc>
-          )}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={1}>{item.titulo}</Text>
+          {item.autor && <Text style={styles.author} numberOfLines={1}>{item.autor}</Text>}
+          {item.descricao && <Text style={styles.desc} numberOfLines={3}>{item.descricao}</Text>}
           {item.data_favorito && !isNaN(Date.parse(item.data_favorito)) && (
-            <DateText>
+            <Text style={styles.dateText}>
               Favoritado em {new Date(item.data_favorito).toLocaleDateString('pt-BR')}
-            </DateText>
+            </Text>
           )}
-        </Content>
-      </Card>
+        </View>
+      </TouchableOpacity>
     ),
     () => true
   );
 
   const EmptyState = () => (
-    <EmptyContainer>
+    <View style={styles.emptyContainer}>
       <StarIcon size={64} weight="duotone" color={theme.COLORS.AMARELO} />
-      <EmptyText>
+      <Text style={styles.emptyText}>
         Você ainda não adicionou livros aos seus favoritos.
-      </EmptyText>
-    </EmptyContainer>
+      </Text>
+    </View>
   );
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.COLORS.PRETO }}
-      edges={['top', 'bottom']}
-    >
-      <Wrapper>
-        <SeusFavoritos>Seus favoritos:</SeusFavoritos>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <View style={styles.wrapper}>
+        <Text style={styles.header}>Seus favoritos:</Text>
 
         {loading && (
           <ActivityIndicator
             color={theme.COLORS.VERDE}
             size="large"
-            style={{ marginTop: 16 }}
+            style={styles.loading}
           />
         )}
 
-        {error && <ErrorText>{error}</ErrorText>}
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         {!loading && !error && (
           <FlatList
@@ -151,91 +157,90 @@ export default function Favoritos() {
                 tintColor={theme.COLORS.VERDE}
               />
             }
-            contentContainerStyle={{ padding: 16 }}
+            contentContainerStyle={styles.listContent}
             ListEmptyComponent={<EmptyState />}
           />
         )}
-      </Wrapper>
+      </View>
     </SafeAreaView>
   );
 }
 
-// Styled Components
-
-const Wrapper = styled.View` flex: 1; `;
-
-const SeusFavoritos = styled.Text`
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: 40px;
-  color: ${theme.COLORS.WHITE};
-  margin: 40px 18px 8px;
-`;
-
-interface CardProps {
-  borderColor?: string;
-}
-
-const Card = styled.TouchableOpacity<CardProps>`
-  flex-direction: row;
-  border: 3px solid ${({ borderColor }: CardProps) => borderColor || theme.COLORS.AMARELO};
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-`;
-
-const Cover = styled.Image`
-  width: 80px;
-  height: 120px;
-  border-radius: 6px;
-  background-color: #eee;
-`;
-
-const Content = styled.View`
-  flex: 1;
-  margin-left: 12px;
-`;
-
-const Title = styled.Text`
-  font-family: ${theme.FONT_FAMILY.INST_SANS};
-  font-size: ${theme.FONT_SIZE.LG}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const Author = styled.Text`
-  margin-top: 4px;
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const Desc = styled.Text`
-  margin-top: 6px;
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${theme.COLORS.WHITE};
-  line-height: 18px;
-`;
-
-const DateText = styled.Text`
-  margin-top: 8px;
-  font-size: ${theme.FONT_SIZE.SM}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const EmptyContainer = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 16px;
-`;
-
-const EmptyText = styled.Text`
-  margin-top: 16px;
-  text-align: center;
-  font-size: ${theme.FONT_SIZE.MD}px;
-  color: ${theme.COLORS.WHITE};
-`;
-
-const ErrorText = styled.Text`
-  text-align: center;
-  margin-top: 32px;
-  color: ${theme.COLORS.VERMELHO};
-`;
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.COLORS.PRETO
+  },
+  wrapper: {
+    flex: 1
+  },
+  header: {
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: 40,
+    color: theme.COLORS.WHITE,
+    marginVertical: 8,
+    marginHorizontal: 18,
+    marginTop: 25
+  },
+  loading: {
+    marginTop: 16
+  },
+  card: {
+    flexDirection: 'row',
+    borderWidth: 3,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16
+  },
+  cover: {
+    width: 80,
+    height: 120,
+    borderRadius: 6,
+    backgroundColor: '#eee'
+  },
+  content: {
+    flex: 1,
+    marginLeft: 12
+  },
+  title: {
+    fontFamily: theme.FONT_FAMILY.INST_SANS,
+    fontSize: theme.FONT_SIZE.LG,
+    color: theme.COLORS.WHITE
+  },
+  author: {
+    marginTop: 4,
+    fontSize: theme.FONT_SIZE.SM,
+    color: theme.COLORS.WHITE
+  },
+  desc: {
+    marginTop: 6,
+    fontSize: theme.FONT_SIZE.SM,
+    color: theme.COLORS.WHITE,
+    lineHeight: 18
+  },
+  dateText: {
+    marginTop: 8,
+    fontSize: theme.FONT_SIZE.SM,
+    color: theme.COLORS.WHITE
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40
+  },
+  emptyText: {
+    marginTop: 16,
+    textAlign: 'center',
+    fontSize: theme.FONT_SIZE.MD,
+    color: theme.COLORS.WHITE
+  },
+  errorText: {
+    textAlign: 'center',
+    marginTop: 32,
+    color: theme.COLORS.VERMELHO
+  },
+  listContent: {
+    padding: 16
+  }
+});

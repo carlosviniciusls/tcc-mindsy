@@ -1,5 +1,4 @@
 // src/contexts/AuthContext.tsx
-
 import React, { createContext, useContext, useState } from 'react';
 import { api } from '../services/api';
 
@@ -9,11 +8,13 @@ type Usuario = {
   email: string;
 };
 
-type AuthContextType = {
+export type AuthContextType = {
   usuario: Usuario | null;
   login: (email: string, senha: string) => Promise<void>;
   register: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (nome: string) => Promise<void>;
+  changePassword: (oldPass: string, newPass: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -23,9 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, senha: string) => {
     const res = await api.post('/api/usuarios/login', { email, senha });
-    const user = res.data.usuario as Usuario;
-    setUsuario(user);
-    // sem persistência em AsyncStorage
+    setUsuario(res.data.usuario);
   };
 
   const register = async (nome: string, email: string, senha: string) => {
@@ -34,11 +33,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = () => {
     setUsuario(null);
-    // sem remoção de AsyncStorage
+  };
+
+  const updateProfile = async (nome: string) => {
+    if (!usuario) return;
+    const res = await api.put(`/api/usuarios/${usuario.id}/nome`, { nome });
+    setUsuario(res.data.usuario);
+  };
+
+  const changePassword = async (oldPass: string, newPass: string) => {
+    if (!usuario) return;
+    await api.patch(`/api/usuarios/${usuario.id}/senha`, {
+      oldPassword: oldPass,
+      newPassword: newPass
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ usuario, login, register, logout }}>
+    <AuthContext.Provider 
+      value={{ usuario, login, register, logout, updateProfile, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -16,5 +16,5 @@ export default function BuscarStack() {
       <Stack.Screen name="BuscarMain" component={Buscar} />
       <Stack.Screen name="LivroDetalhes" component={LivroDetalhes} />
     </Stack.Navigator>
-  );
+  )
 }

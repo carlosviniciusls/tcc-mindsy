@@ -2,14 +2,13 @@
 
 import React from 'react';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Pressable } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styled from 'styled-components/native';
 import { theme } from '../theme';
 import Home from '../screens/Main/Home';
 import Mapa from '../screens/Main/Mapa';
 import FavoritosStack from './FavoritosStack';
-import Perfil from '../screens/Main/Perfil';
+import ProfileStack from './ProfileStack'
 import BuscarStack from './BuscarStack';
 
 import {
@@ -32,8 +31,8 @@ const tabs = {
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
-    <SafeAreaView edges={['bottom']} style={{ backgroundColor: theme.COLORS.PRETO }}>
-      <BarContainer>
+    <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+      <View style={styles.barContainer}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           const { icon: Icon, color } = tabs[route.name as keyof typeof tabs];
@@ -50,61 +49,72 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           };
 
           return (
-            <TabItem key={route.key} onPress={onPress}>
+            <Pressable
+              key={route.key}
+              style={styles.tabItem}
+              onPress={onPress}
+            >
               <Icon
                 size={28}
                 weight={isFocused ? 'fill' : 'regular'}
                 color={isFocused ? color : '#ccc'}
               />
-              <Label style={{ color: isFocused ? color : '#ccc' }}>
+              <Text style={[styles.label, { color: isFocused ? color : '#ccc' }]}>
                 {route.name}
-              </Label>
-              {isFocused && <Highlight style={{ backgroundColor: color }} />}
-            </TabItem>
+              </Text>
+              {isFocused && (
+                <View style={[styles.highlight, { backgroundColor: color }]} />
+              )}
+            </Pressable>
           );
         })}
-      </BarContainer>
+      </View>
     </SafeAreaView>
   );
 }
 
 export default function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={ props => <CustomTabBar {...props} /> }>
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={props => <CustomTabBar {...props} />}
+    >
       <Tab.Screen name="Mapa" component={Mapa} />
       <Tab.Screen name="Buscar" component={BuscarStack} />
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Favoritos" component={FavoritosStack} />
-      <Tab.Screen name="Perfil" component={Perfil} />
+      <Tab.Screen name="Perfil" component={ProfileStack} />
     </Tab.Navigator>
   );
 }
 
-const BarContainer = styled.View`
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  background-color: ${theme.COLORS.PRETO};
-  padding: 8px 0;
-`;
-
-const TabItem = styled(Pressable)`
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-`;
-
-const Label = styled.Text`
-  margin-top: 4px;
-  font-size: 10px;
-  font-family: ${theme.FONT_FAMILY.INST_SANS};
-`;
-
-const Highlight = styled.View`
-  position: absolute;
-  bottom: -4px;
-  height: 4px;
-  width: 50%;
-  border-radius: 2px;
-`;
+const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.COLORS.PRETO,
+  },
+  barContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: theme.COLORS.PRETO,
+    paddingVertical: 8,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  label: {
+    marginTop: 4,
+    fontSize: 10,
+    fontFamily: theme.FONT_FAMILY.INST_SANS,
+  },
+  highlight: {
+    position: 'absolute',
+    bottom: -4,
+    height: 4,
+    width: '50%',
+    borderRadius: 2,
+  },
+});

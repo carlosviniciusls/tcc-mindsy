@@ -1,12 +1,18 @@
-// src/screens/Auth/Register.tsx
-
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
-import styled from 'styled-components/native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { theme } from '../../theme';
 import { useAuth } from '../../contexts/AuthContext';
+import { theme } from '../../theme';
 
 type AuthStackParamList = {
   Splash: undefined;
@@ -26,6 +32,12 @@ export default function Register() {
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
+    // validação de todos os campos
+    if (!nome.trim() || !sobrenome.trim() || !email.trim() || !senha) {
+      setError('Preencha todos os campos antes de cadastrar.');
+      return;
+    }
+
     try {
       setError('');
       const fullName = `${nome.trim()} ${sobrenome.trim()}`.trim();
@@ -41,28 +53,34 @@ export default function Register() {
   };
 
   return (
-    <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Logo source={require('../../assets/Logo.png')} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}
+    >
+      <Image source={require('../../assets/Logo.png')} style={styles.logo} />
 
-      <Form>
-        <Label>Nome</Label>
-        <InputRoxo
+      <View style={styles.form}>
+        <Text style={styles.label}>Nome</Text>
+        <TextInput
+          style={[styles.inputBase, { borderBottomColor: theme.COLORS.ROXO }]}
           placeholder="Seu nome"
           placeholderTextColor="rgba(255,255,255,0.6)"
           value={nome}
           onChangeText={setNome}
         />
 
-        <Label>Sobrenome</Label>
-        <InputVerde
+        <Text style={styles.label}>Sobrenome</Text>
+        <TextInput
+          style={[styles.inputBase, { borderBottomColor: theme.COLORS.VERDE }]}
           placeholder="Seu sobrenome"
           placeholderTextColor="rgba(255,255,255,0.6)"
           value={sobrenome}
           onChangeText={setSobrenome}
         />
 
-        <Label>E-mail</Label>
-        <InputVermelho
+        <Text style={styles.label}>E-mail</Text>
+        <TextInput
+          style={[styles.inputBase, { borderBottomColor: theme.COLORS.VERMELHO }]}
           placeholder="seu@email.com"
           placeholderTextColor="rgba(255,255,255,0.6)"
           keyboardType="email-address"
@@ -71,8 +89,9 @@ export default function Register() {
           onChangeText={setEmail}
         />
 
-        <Label>Senha</Label>
-        <InputAmarelo
+        <Text style={styles.label}>Senha</Text>
+        <TextInput
+          style={[styles.inputBase, { borderBottomColor: theme.COLORS.AMARELO }]}
           placeholder="••••••••"
           placeholderTextColor="rgba(255,255,255,0.6)"
           secureTextEntry
@@ -80,104 +99,82 @@ export default function Register() {
           onChangeText={setSenha}
         />
 
-        {!!error && <ErrorText>{error}</ErrorText>}
+        {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        <ButtonRegister onPress={handleRegister}>
-          <ButtonRegisterText>CADASTRAR</ButtonRegisterText>
-        </ButtonRegister>
+        <TouchableOpacity style={styles.buttonRegister} onPress={handleRegister}>
+          <Text style={styles.buttonRegisterText}>CADASTRAR</Text>
+        </TouchableOpacity>
 
-        <ButtonLogin onPress={() => navigation.navigate('Login')}>
-          <ButtonLoginText>LOGIN</ButtonLoginText>
-        </ButtonLogin>
-      </Form>
-    </Container>
+        <TouchableOpacity
+          style={styles.buttonLogin}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.buttonLoginText}>LOGIN</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
-// Styled-components
-
-const Container = styled(KeyboardAvoidingView)`
-  flex: 1;
-  background-color: ${theme.COLORS.PRETO};
-  align-items: center;
-  justify-content: center;
-  padding: 0 24px;
-`;
-
-const Logo = styled.Image`
-  width: 160px;
-  height: 160px;
-  margin-bottom: 32px;
-`;
-
-const Form = styled.View`
-  width: 100%;
-`;
-
-const Label = styled.Text`
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  color: ${theme.COLORS.WHITE};
-  margin-bottom: 6px;
-  font-size: ${theme.FONT_SIZE.XL * 1.1}px;
-`;
-
-const BaseInput = styled.TextInput`
-  background-color: transparent;
-  color: ${theme.COLORS.WHITE};
-  border-bottom-width: 2px;
-  font-family: ${theme.FONT_FAMILY.INST_SANS};
-  font-size: ${theme.FONT_SIZE.MD}px;
-  padding: 8px 0;
-  margin-bottom: 24px;
-`;
-
-const InputRoxo = styled(BaseInput)`
-  border-bottom-color: ${theme.COLORS.ROXO};
-`;
-
-const InputVerde = styled(BaseInput)`
-  border-bottom-color: ${theme.COLORS.VERDE};
-`;
-
-const InputVermelho = styled(BaseInput)`
-  border-bottom-color: ${theme.COLORS.VERMELHO};
-`;
-
-const InputAmarelo = styled(BaseInput)`
-  border-bottom-color: ${theme.COLORS.AMARELO};
-`;
-
-const ErrorText = styled.Text`
-  color: ${theme.COLORS.VERMELHO};
-  font-family: ${theme.FONT_FAMILY.INST_SANS};
-  font-size: ${theme.FONT_SIZE.SM}px;
-  margin-bottom: 16px;
-  text-align: center;
-`;
-
-const ButtonRegister = styled.TouchableOpacity`
-  background-color: ${theme.COLORS.BLUE};
-  padding: 14px 0;
-  border-radius: 8px;
-  margin-bottom: 12px;
-`;
-
-const ButtonRegisterText = styled.Text`
-  color: ${theme.COLORS.PRETO};
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${theme.FONT_SIZE.XL}px;
-  text-align: center;
-`;
-
-const ButtonLogin = styled.TouchableOpacity`
-  background-color: ${theme.COLORS.VERMELHO};
-  padding: 14px 0;
-  border-radius: 8px;
-`;
-
-const ButtonLoginText = styled.Text`
-  color: ${theme.COLORS.PRETO};
-  font-family: ${theme.FONT_FAMILY.BEBASNEUE};
-  font-size: ${theme.FONT_SIZE.XL}px;
-  text-align: center;
-`;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.COLORS.PRETO,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  logo: {
+    width: 160,
+    height: 160,
+    marginBottom: 32,
+  },
+  form: {
+    width: '100%',
+  },
+  label: {
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    color: theme.COLORS.WHITE,
+    marginBottom: 6,
+    fontSize: theme.FONT_SIZE.XL * 1.1,
+  },
+  inputBase: {
+    backgroundColor: 'transparent',
+    color: theme.COLORS.WHITE,
+    borderBottomWidth: 2,
+    fontFamily: theme.FONT_FAMILY.INST_SANS,
+    fontSize: theme.FONT_SIZE.MD,
+    paddingVertical: 8,
+    marginBottom: 24,
+  },
+  errorText: {
+    color: theme.COLORS.VERMELHO,
+    fontFamily: theme.FONT_FAMILY.INST_SANS,
+    fontSize: theme.FONT_SIZE.SM,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  buttonRegister: {
+    backgroundColor: theme.COLORS.BLUE,
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  buttonRegisterText: {
+    color: theme.COLORS.PRETO,
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: theme.FONT_SIZE.XL,
+    textAlign: 'center',
+  },
+  buttonLogin: {
+    backgroundColor: theme.COLORS.VERMELHO,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  buttonLoginText: {
+    color: theme.COLORS.PRETO,
+    fontFamily: theme.FONT_FAMILY.BEBASNEUE,
+    fontSize: theme.FONT_SIZE.XL,
+    textAlign: 'center',
+  },
+});
