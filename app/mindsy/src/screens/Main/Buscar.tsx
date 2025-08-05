@@ -19,11 +19,11 @@ import {
   Image,
   StyleSheet
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useFocusEffect } from '@react-navigation/native'
-import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { MagnifyingGlass } from 'phosphor-react-native';
+
+import { api } from '../../services/api';
 import { theme } from '../../theme';
 
 export type Livro = {
@@ -36,11 +36,6 @@ export type Livro = {
   status: 'disponivel' | 'reservado';
   borderColor?: string;
 };
-
-const api = axios.create({
-  baseURL: 'http://192.168.0.105:3000',
-  timeout: 3000
-});
 
 export default function Buscar() {
   const navigation = useNavigation<any>();
@@ -99,7 +94,6 @@ export default function Buscar() {
     [query, tipoFilter, palette]
   );
 
-  // dispara sempre que a tela ganha foco
   useFocusEffect(
     useCallback(() => {
       fetchLivros(true);
@@ -169,7 +163,10 @@ export default function Buscar() {
                 key={tipo}
                 style={[
                   styles.filterBtn,
-                  { borderColor, backgroundColor: selected ? theme.COLORS.PRETO : 'transparent' }
+                  {
+                    borderColor,
+                    backgroundColor: selected ? theme.COLORS.PRETO : 'transparent'
+                  }
                 ]}
                 onPress={() => {
                   setTipoFilter(tipo);
@@ -182,9 +179,7 @@ export default function Buscar() {
                     { color: selected ? borderColor : theme.COLORS.WHITE }
                   ]}
                 >
-                  {tipo === 'tudo'
-                    ? 'Todos'
-                    : tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+                  {tipo === 'tudo' ? 'Todos' : tipo.charAt(0).toUpperCase() + tipo.slice(1)}
                 </Text>
               </TouchableOpacity>
             );

@@ -1,6 +1,5 @@
 // src/screens/Main/BookDetail.tsx
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   View,
   ScrollView,
@@ -10,55 +9,59 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet
-} from 'react-native';
+} from 'react-native'
 import {
   useNavigation,
   useRoute,
   RouteProp
-} from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeftIcon, StarIcon } from 'phosphor-react-native';
-import { api } from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
-import { useFavorites } from '../../contexts/FavoriteContext';
-import { theme } from '../../theme';
-import type { BuscarStackParamList } from '../../navigation/BuscarStack';
-import type { Livro } from './Buscar';
+} from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { ArrowLeftIcon, StarIcon } from 'phosphor-react-native'
 
-type RouteProps = RouteProp<BuscarStackParamList, 'LivroDetalhes'>;
-type NavProps   = NativeStackNavigationProp<BuscarStackParamList, 'LivroDetalhes'>;
+import { api } from '../../services/api'
+import { useAuth } from '../../contexts/AuthContext'
+import { useFavorites } from '../../contexts/FavoriteContext'
+import { theme } from '../../theme'
+import type { BuscarStackParamList } from '../../navigation/BuscarStack'
+import type { Livro } from './Buscar'
+
+type RouteProps = RouteProp<BuscarStackParamList, 'LivroDetalhes'>
+type NavProps   = NativeStackNavigationProp<BuscarStackParamList, 'LivroDetalhes'>
 
 export type Machine = {
-  id: number;
-  nome: string;
-  localizacao: string;
-};
+  id: number
+  nome: string
+  localizacao: string
+}
 
 export default function LivroDetalhes() {
-  const navigation       = useNavigation<NavProps>();
-  const { book }: { book: Livro } = useRoute<RouteProps>().params;
-  const { usuario }      = useAuth();
-  const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const navigation       = useNavigation<NavProps>()
+  const { book }: { book: Livro } = useRoute<RouteProps>().params
+  const { usuario }      = useAuth()
+  const { favorites, addFavorite, removeFavorite } = useFavorites()
 
-  const [machines, setMachines]               = useState<Machine[]>([]);
-  const [loadingMachines, setLoadingMachines] = useState(false);
-  const isFav = favorites.some(f => f.id === book.id);
+  const [machines, setMachines]               = useState<Machine[]>([])
+  const [loadingMachines, setLoadingMachines] = useState(false)
+  const isFav = favorites.some(f => f.id === book.id)
 
   useEffect(() => {
     if (book.status === 'disponivel') {
-      setLoadingMachines(true);
+      setLoadingMachines(true)
       api.get<Machine[]>(`/api/maquinas/livro/${book.id}`)
         .then(res => setMachines(res.data))
-        .catch(() => {})
-        .finally(() => setLoadingMachines(false));
+        .catch(() => {
+          Alert.alert('Erro', 'Falha ao carregar máquinas disponíveis.')
+        })
+        .finally(() => setLoadingMachines(false))
     }
-  }, [book.id, book.status]);
+  }, [book.id, book.status])
 
   const handleReserve = (machineId: number) => {
     if (!usuario) {
-      Alert.alert('Erro', 'Você precisa estar logado para reservar.');
-      return;
+      Alert.alert('Erro', 'Você precisa estar logado para reservar.')
+      return
     }
+
     Alert.alert(
       'Confirmar reserva',
       'Deseja realmente reservar este livro?',
@@ -70,47 +73,49 @@ export default function LivroDetalhes() {
             try {
               await api.post('/api/reservas', {
                 usuario_id: usuario.id,
-                livro_id: book.id
-              });
+                livro_id: book.id,
+                maquina_id: machineId
+              })
               Alert.alert(
                 'Sucesso',
-                'Você reservou um livro. Verifique a tela inicial para retirar seu livro quando estiver no local.'
-              );
-              navigation.goBack();
+                'Reserva realizada! Procure a máquina para retirar seu livro.'
+              )
+              navigation.goBack()
             } catch {
               Alert.alert(
                 'Erro',
                 'Não foi possível registrar sua reserva. Tente novamente.'
-              );
+              )
             }
           }
         }
       ]
-    );
-  };
+    )
+  }
 
   const handleToggleFavorite = async () => {
     if (!usuario) {
-      Alert.alert('Erro', 'Você precisa estar logado para favoritar.');
-      return;
+      Alert.alert('Erro', 'Você precisa estar logado para favoritar.')
+      return
     }
+
     try {
       if (isFav) {
         await api.delete('/api/favoritos', {
           data: { usuario_id: usuario.id, livro_id: book.id }
-        });
-        removeFavorite(book.id);
+        })
+        removeFavorite(book.id)
       } else {
         await api.post('/api/favoritos', {
           usuario_id: usuario.id,
           livro_id: book.id
-        });
-        addFavorite(book);
+        })
+        addFavorite(book)
       }
     } catch {
-      Alert.alert('Erro', 'Não foi possível atualizar favoritos.');
+      Alert.alert('Erro', 'Não foi possível atualizar favoritos.')
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
@@ -120,13 +125,10 @@ export default function LivroDetalhes() {
         </Pressable>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.coverWrapper}>
           <Image
-            source={{ uri: book.imagem_url || '' }}
+            source={{ uri: book.imagem_url ?? '' }}
             style={styles.cover}
             resizeMode="cover"
           />
@@ -170,9 +172,7 @@ export default function LivroDetalhes() {
                 : styles.unavailable
             ]}
           >
-            {book.status === 'disponivel'
-              ? 'Disponível'
-              : 'Reservado'}
+            {book.status === 'disponivel' ? 'Disponível' : 'Reservado'}
           </Text>
         </View>
 
@@ -180,10 +180,7 @@ export default function LivroDetalhes() {
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>DISPONÍVEL EM</Text>
             {loadingMachines ? (
-              <ActivityIndicator
-                color={theme.COLORS.VERDE}
-                size="small"
-              />
+              <ActivityIndicator color={theme.COLORS.VERDE} size="small" />
             ) : machines.length > 0 ? (
               machines.map(m => (
                 <View style={styles.machineItem} key={m.id}>
@@ -212,7 +209,7 @@ export default function LivroDetalhes() {
         )}
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -334,4 +331,4 @@ const styles = StyleSheet.create({
     fontSize: theme.FONT_SIZE.SM,
     color: theme.COLORS.PRETO
   }
-});
+})

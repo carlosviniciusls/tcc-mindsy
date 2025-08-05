@@ -30,7 +30,6 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    // validação básica de campos
     if (!email.trim() || !senha) {
       setError('Preencha e-mail e senha antes de entrar.');
       return;
@@ -39,8 +38,6 @@ export default function Login() {
     try {
       setError('');
       await login(email.trim(), senha);
-      // se seu fluxo estiver configurado para trocar de stack ao setUsuario(),
-      // não é necessário chamar navigation aqui
     } catch {
       setError('E-mail ou senha inválidos.');
     }

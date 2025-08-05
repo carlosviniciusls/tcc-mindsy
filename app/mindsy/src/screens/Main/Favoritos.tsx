@@ -1,5 +1,4 @@
 // src/screens/Main/Favoritos.tsx
-
 import React, {
   useState,
   useCallback,
@@ -18,10 +17,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+import { StarIcon } from 'phosphor-react-native';
+
+import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { theme } from '../../theme';
-import { StarIcon } from 'phosphor-react-native';
 import type { Livro } from './Buscar';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { FavoritosStackParamList } from '../../navigation/FavoritosStack';
@@ -30,11 +30,6 @@ export type Favorito = Livro & {
   data_favorito?: string;
   borderColor?: string;
 };
-
-const api = axios.create({
-  baseURL: 'http://192.168.0.105:3000',
-  timeout: 3000
-});
 
 export default function Favoritos() {
   const navigation =
@@ -79,7 +74,6 @@ export default function Favoritos() {
     [usuario, palette]
   );
 
-  // auto-refresh when screen gains focus
   useFocusEffect(
     useCallback(() => {
       fetchFavoritos(true);
@@ -99,21 +93,36 @@ export default function Favoritos() {
   const FavoritoCard = memo(
     ({ item }: { item: Favorito }) => (
       <TouchableOpacity
-        style={[styles.card, { borderColor: item.borderColor || theme.COLORS.AMARELO }]}
+        style={[
+          styles.card,
+          { borderColor: item.borderColor || theme.COLORS.AMARELO }
+        ]}
         onPress={() => handleOpenDetails(item)}
       >
         {item.imagem_url && (
           <Image source={{ uri: item.imagem_url }} style={styles.cover} />
         )}
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>{item.titulo}</Text>
-          {item.autor && <Text style={styles.author} numberOfLines={1}>{item.autor}</Text>}
-          {item.descricao && <Text style={styles.desc} numberOfLines={3}>{item.descricao}</Text>}
-          {item.data_favorito && !isNaN(Date.parse(item.data_favorito)) && (
-            <Text style={styles.dateText}>
-              Favoritado em {new Date(item.data_favorito).toLocaleDateString('pt-BR')}
+          <Text style={styles.title} numberOfLines={1}>
+            {item.titulo}
+          </Text>
+          {item.autor && (
+            <Text style={styles.author} numberOfLines={1}>
+              {item.autor}
             </Text>
           )}
+          {item.descricao && (
+            <Text style={styles.desc} numberOfLines={3}>
+              {item.descricao}
+            </Text>
+          )}
+          {item.data_favorito &&
+            !isNaN(Date.parse(item.data_favorito)) && (
+              <Text style={styles.dateText}>
+                Favoritado em{' '}
+                {new Date(item.data_favorito).toLocaleDateString('pt-BR')}
+              </Text>
+            )}
         </View>
       </TouchableOpacity>
     ),
@@ -147,7 +156,7 @@ export default function Favoritos() {
         {!loading && !error && (
           <FlatList
             data={favoritos}
-            keyExtractor={(item) => String(item.id)}
+            keyExtractor={item => String(item.id)}
             renderItem={({ item }) => <FavoritoCard item={item} />}
             showsVerticalScrollIndicator={false}
             refreshControl={

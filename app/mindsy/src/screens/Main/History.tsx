@@ -18,7 +18,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import axios from 'axios';
+
+import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { theme } from '../../theme';
 
@@ -57,8 +58,8 @@ export default function History() {
       setError(null);
 
       try {
-        const res = await axios.get<Entry[]>(
-          `http://192.168.0.105:3000/api/historico/${usuario.id}`
+        const res = await api.get<Entry[]>(
+          `/api/historico/${usuario.id}`
         );
         const dados = res.data.map((item, idx) => ({
           ...item,
@@ -68,7 +69,7 @@ export default function History() {
       } catch {
         setError('Erro ao carregar histórico.');
       } finally {
-        withLoading && setLoading(false);
+        if (withLoading) setLoading(false);
       }
     },
     [usuario, palette]
@@ -131,7 +132,7 @@ export default function History() {
       {!loading && !error && (
         <FlatList
           data={entries}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={item => String(item.id)}
           renderItem={({ item }) => <EntryCard item={item} />}
           refreshControl={
             <RefreshControl

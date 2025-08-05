@@ -19,8 +19,6 @@ type AuthStackParamList = {
   Register: undefined;
 };
 
-const { width, height } = Dimensions.get('window');
-
 export default function Splash() {
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();

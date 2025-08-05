@@ -32,7 +32,6 @@ export default function Register() {
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
-    // validação de todos os campos
     if (!nome.trim() || !sobrenome.trim() || !email.trim() || !senha) {
       setError('Preencha todos os campos antes de cadastrar.');
       return;
