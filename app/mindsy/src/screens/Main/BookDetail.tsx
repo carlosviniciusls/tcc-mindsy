@@ -42,6 +42,7 @@ export default function LivroDetalhes() {
 
   const [machines, setMachines]               = useState<Machine[]>([])
   const [loadingMachines, setLoadingMachines] = useState(false)
+  const [isReserving, setIsReserving]         = useState(false)
   const isFav = favorites.some(f => f.id === book.id)
 
   useEffect(() => {
@@ -62,6 +63,8 @@ export default function LivroDetalhes() {
       return
     }
 
+    if (isReserving) return // evita envios múltiplos
+
     Alert.alert(
       'Confirmar reserva',
       'Deseja realmente reservar este livro?',
@@ -70,22 +73,29 @@ export default function LivroDetalhes() {
         {
           text: 'Confirmar',
           onPress: async () => {
+            setIsReserving(true)
             try {
-              await api.post('/api/reservas', {
+              const payload = {
                 usuario_id: usuario.id,
                 livro_id: book.id,
-                maquina_id: machineId
-              })
-              Alert.alert(
-                'Sucesso',
-                'Reserva realizada! Procure a máquina para retirar seu livro.'
-              )
+                maquina_id: machineId // inclua se o backend aceitar
+              }
+
+              const res = await api.post('/api/reservas', payload)
+
+              const successMessage = res?.data?.message ?? 'Reserva realizada com sucesso.'
+              Alert.alert('Sucesso', successMessage)
               navigation.goBack()
-            } catch {
-              Alert.alert(
-                'Erro',
+            } catch (err: any) {
+              const serverMessage =
+                err?.response?.data?.message ||
+                err?.response?.data?.error ||
+                err?.message ||
                 'Não foi possível registrar sua reserva. Tente novamente.'
-              )
+              Alert.alert('Erro', serverMessage)
+              console.warn('Reserva error:', err?.response ?? err)
+            } finally {
+              setIsReserving(false)
             }
           }
         }
@@ -167,9 +177,7 @@ export default function LivroDetalhes() {
           <Text
             style={[
               styles.infoValue,
-              book.status === 'disponivel'
-                ? styles.available
-                : styles.unavailable
+              book.status === 'disponivel' ? styles.available : styles.unavailable
             ]}
           >
             {book.status === 'disponivel' ? 'Disponível' : 'Reservado'}
@@ -193,17 +201,21 @@ export default function LivroDetalhes() {
                     </Text>
                   </View>
                   <Pressable
-                    style={styles.reserveBtn}
+                    style={[
+                      styles.reserveBtn,
+                      isReserving ? { opacity: 0.6 } : undefined
+                    ]}
                     onPress={() => handleReserve(m.id)}
+                    disabled={isReserving}
                   >
-                    <Text style={styles.reserveTxt}>Reservar</Text>
+                    <Text style={styles.reserveTxt}>
+                      {isReserving ? 'Reservando...' : 'Reservar'}
+                    </Text>
                   </Pressable>
                 </View>
               ))
             ) : (
-              <Text style={styles.sectionText}>
-                Nenhuma máquina disponível.
-              </Text>
+              <Text style={styles.sectionText}>Nenhuma máquina disponível.</Text>
             )}
           </View>
         )}

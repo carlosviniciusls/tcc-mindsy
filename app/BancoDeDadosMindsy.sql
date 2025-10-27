@@ -2,12 +2,7 @@
 -- Script completo para criar o banco Mindsy e popular com dados de teste
 -- #################################################
 
--- 1) Cria (ou recria) o banco e seleciona
-DROP DATABASE IF EXISTS mindsy;
-CREATE DATABASE mindsy
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-USE mindsy;
+USE sql10803652;
 
 -- 2) Remove tabelas caso já existam (para rodar várias vezes sem erro)
 DROP TABLE IF EXISTS historico;
@@ -49,7 +44,7 @@ CREATE TABLE reservas (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id    INT,
   livro_id      INT,
-  data_reserva  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  data_reserva  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status        ENUM('ativa','concluida','cancelada') DEFAULT 'ativa',
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
   FOREIGN KEY (livro_id)   REFERENCES livros(id)
@@ -59,7 +54,7 @@ CREATE TABLE favoritos (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id    INT,
   livro_id      INT,
-  data_favorito DATETIME DEFAULT CURRENT_TIMESTAMP,
+  data_favorito TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
   FOREIGN KEY (livro_id)   REFERENCES livros(id),
   UNIQUE KEY(usuario_id, livro_id)
@@ -70,7 +65,7 @@ CREATE TABLE historico (
   usuario_id     INT,
   livro_id       INT,
   maquina_id     INT,
-  data_retirada  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  data_retirada  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
   FOREIGN KEY (livro_id)   REFERENCES livros(id),
   FOREIGN KEY (maquina_id) REFERENCES maquinas(id)
